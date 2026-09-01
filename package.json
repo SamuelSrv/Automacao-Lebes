@@ -1,0 +1,40 @@
+{
+  "name": "lebes-automation",
+  "version": "1.0.0",
+  "description": "Centro de Comando - Lebes Automation",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win --x64"
+  },
+  "dependencies": {
+    "ssh2": "^1.15.0"
+  },
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.lebes.automation",
+    "productName": "Lebes Automation",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "js/app.js",
+      "style.css",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "node_modules/ssh2/**/*",
+      "node_modules/asn1.js/**/*",
+      "node_modules/streamroller/**/*"
+    ]
+  }
+}

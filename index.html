@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lebes Automation</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="app-container">
+
+        <!-- ================= CABEÇALHO ================= -->
+        <header class="app-header-nav">
+            <div class="header-title">
+                <h1>Lebes Automation</h1>
+                <span class="version" style="cursor:pointer;" onclick="checarAtualizacao()">v1.0</span>
+            </div>
+
+            <div class="header-buttons" style="display: flex; gap: 10px; align-items: center;">
+                <!-- BOTÕES DE DEV (OCULTOS PARA PRODUÇÃO) -->
+                <button class="btn-action" onclick="abrirConsole()"
+                    style="display: none; background-color: #ea580c; border: none; font-weight: bold;">Console de
+                    Ações</button>
+                <button class="btn-action" onclick="window.sistema.toggleDevTools()"
+                    style="display: none; background-color: #ea580c; border: none; font-weight: bold;">DevTools</button>
+
+                <!-- Divisor Oculto -->
+                <div style="width: 1px; height: 30px; background-color: #475569; margin: 0 10px; display: none;"></div>
+
+                <!-- ABAS DE NAVEGAÇÃO -->
+                <button class="btn-action nav-tab-btn active" onclick="mudarAba('monitor', this)">Monitoramento</button>
+                <button class="btn-action nav-tab-btn" onclick="mudarAba('desligamento', this)">Desligamentos</button>
+            </div>
+        </header>
+
+        <!-- ================= ABA 1: MONITOR & INFRAESTRUTURA ================= -->
+        <div id="aba-monitor" class="tab-content active">
+            <section class="diagnostic-panel">
+                <div class="input-area">
+                    <label for="inputFilial">Número da Filial:</label>
+                    <div class="input-inline">
+                        <input type="number" id="inputFilial" placeholder="Ex: 299" autofocus maxlength="3"
+                            oninput="if(this.value.length > 3) this.value = this.value.slice(0, 3); this.value = this.value.replace(/\D/g, '');"
+                            onkeydown="if(event.key==='Enter') conectarFilial();">
+                        <button class="btn-primary" onclick="conectarFilial()" id="btnConectar">Conectar</button>
+                    </div>
+                </div>
+                <div class="status-board">
+                    <div class="status-row">
+                        <span class="status-label">Filial:</span>
+                        <span class="status-value" id="valNomeFilial">Aguardando...</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-label">IP Servidor:</span>
+                        <span class="status-value" id="valServidor">---</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-label">Internet:</span>
+                        <span class="status-value" id="valInternet">---</span>
+                    </div>
+                    <div class="status-row highlight-row">
+                        <span class="status-label">Status Geral:</span>
+                        <span class="status-value status-geral" id="valStatusGeral">Aguardando</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="tools-panel" id="painelFerramentas">
+                <div class="tools-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Rede e Mapeamento</h3>
+                        </div>
+                        <div class="card-body">
+                            <button class="btn-action" style="background-color: #0ea5e9; color: white; text-align: center;" onclick="abrirMapaRede()">Scanner de Dispositivos</button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Servidor</h3>
+                        </div>
+                        <div class="card-body">
+                            <button class="btn-action btn-putty" onclick="abrirPuttyServidor()">Terminal (PuTTY)</button>
+                            <button class="btn-action btn-moba" onclick="abrirMobaServidor()">Terminal (MobaXterm)</button>
+                            <button class="btn-action btn-winscp" onclick="abrirWinSCPServidor()">Arquivos (WinSCP)</button>
+                            <hr>
+                            <button class="btn-action btn-danger" onclick="reiniciarAgente()">Reiniciar Agente Resolve</button>
+                            <button class="btn-action btn-danger" onclick="reiniciarBasesPV()">Reiniciar Bases Pré Venda</button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>PDV's</h3>
+                        </div>
+                        <div class="card-body">
+                            <button class="btn-action btn-vnc" onclick="abrirModalPDV('vnc')">VNC (Acesso Remoto)</button>
+                            <button class="btn-action btn-putty" onclick="abrirModalPDV('putty')">Terminal (PuTTY)</button>
+                            <button class="btn-action btn-moba" onclick="abrirModalPDV('mobaxterm')">Terminal (MobaXterm)</button>
+                            <button class="btn-action btn-winscp" onclick="abrirModalPDV('winscp')">Arquivos (WinSCP)</button>
+                            <hr>
+                            <button class="btn-action btn-danger" onclick="abrirModalPDV('reconfig')">Reconfigurar PDV</button>
+                            <button class="btn-action btn-danger" onclick="abrirModalPDV('log')">Visualizar Log</button>
+                            <button class="btn-action btn-danger" onclick="abrirModalNSU()">Segunda Via</button>
+                            <button class="btn-action btn-danger" onclick="abrirModalPDV('hora')">Ajustar Hora</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- ================= ABA 2: CADASTROS E DESLIGAMENTOS ================= -->
+        <div id="aba-desligamento" class="tab-content" style="display: none;">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Fila de Desligamentos</h3>
+                </div>
+                <div class="card-body desligamento-wrapper">
+                    <div class="desligamento-form-grid">
+                        <input type="number" id="desligFilial" placeholder="Filial">
+                        <input type="text" id="desligSispe" placeholder="SISPE">
+                        <button class="btn-add-fila" onclick="adicionarFilaDesligamento()">Adicionar</button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <tbody id="tabelaFilaDesligamento">
+                                <tr>
+                                    <td colspan="3" class="table-empty">Fila vazia</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <button class="btn-executar-lote" onclick="iniciarDesligamentoLote()">Executar Lote</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= RODAPÉ FIXO ================= -->
+    <div style="position: fixed; bottom: 0; left: 0; width: 100%; text-align: center; padding: 8px; background-color: #0f172a; color: #475569; font-size: 12px; font-weight: 600; font-family: 'Segoe UI', sans-serif; border-top: 1px solid #1e293b; z-index: 9000; letter-spacing: 0.5px;">
+        Criado por: Samuel Saraiva - Grupo Lebes 2026
+    </div>
+
+    <!-- ================= MODAIS DO SISTEMA ================= -->
+
+    <!-- CONSOLE DE AÇÕES -->
+    <div id="modalConsole" class="modal-overlay" style="display: none; z-index: 10001;">
+        <div class="modal-box" style="width: 700px; max-width: 95%;">
+            <div class="modal-header-flex" style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>Console de Ações (Tempo Real)</h3>
+                <div>
+                    <button class="btn-primary" onclick="limparConsole()" style="padding: 6px 12px; width: auto; margin-right: 5px;">Limpar</button>
+                    <button class="btn-danger" onclick="document.getElementById('modalConsole').style.display='none';" style="padding: 6px 12px; width: auto; background: #334155;">Fechar</button>
+                </div>
+            </div>
+            <div id="consoleOutput" style="width: 100%; height: 350px; margin-top: 15px; background: #000; color: #10b981; font-family: 'Courier New', monospace; font-size: 13px; padding: 10px; border: 1px solid #334155; border-radius: 6px; overflow-y: auto; text-align: left; white-space: pre-wrap;"></div>
+        </div>
+    </div>
+
+    <!-- MAPA DA REDE / SCANNER -->
+    <div id="modalMapaRede" class="modal-overlay" style="display: none; z-index: 9998;">
+        <div class="modal-box scanner-modal" style="width: 850px; max-width: 95%; padding: 25px; background: #1e293b;">
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 20px; border-bottom: 1px solid #334155; padding-bottom: 15px;">
+                <h3 style="margin: 0; color: #f8fafc; font-size: 20px;">Mapa de Dispositivos (Filial <span id="mapaFilialNum"></span>)</h3>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-primary" onclick="abrirMapaRede()" style="padding: 8px 16px; background-color: #0284c7; color: white; border: none; font-weight: 600; border-radius: 4px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.backgroundColor='#0369a1'" onmouseout="this.style.backgroundColor='#0284c7'">Recarregar</button>
+                    <button class="btn-danger" onclick="document.getElementById('modalMapaRede').style.display='none';" style="padding: 8px 16px; background-color: transparent; border: 1px solid #475569; color: #94a3b8; font-weight: 600; border-radius: 4px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#334155'; this.style.color='white'" onmouseout="this.style.background='transparent'; this.style.color='#94a3b8'">Fechar</button>
+                </div>
+            </div>
+            <div id="mapaContainer" class="mapa-container-grid" style="max-height: 60vh; overflow-y: auto; width: 100%;"></div>
+        </div>
+    </div>
+
+    <!-- DETALHES DO DISPOSITIVO -->
+    <div id="modalDetalhesDispositivo" class="modal-overlay" style="display: none; z-index: 9999;">
+        <div class="modal-box" style="width: 520px; max-width: 95%; padding: 25px; background: #1e293b;">
+            <!-- Header -->
+            <div style="display: flex; justify-content: center; align-items: center; gap: 15px; border-bottom: 2px solid #334155; padding-bottom: 15px; margin-bottom: 20px;">
+                <h3 id="detNome" style="margin: 0; color: #f8fafc; font-size: 24px; font-weight: 700;">-</h3>
+                <span id="detStatusBadge" style="padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 800; color: white; letter-spacing: 0.5px; text-transform: uppercase;">-</span>
+            </div>
+
+            <!-- Grid de Informações -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px; text-align: left; background: #0f172a; padding: 20px; border-radius: 8px; border: 1px solid #334155;">
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <small style="color: #64748b; font-size: 11px; text-transform: uppercase; font-weight: 600;">Hostname Oficial</small>
+                    <strong id="detHost" style="color: #38bdf8; font-size: 14px;">-</strong>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <small style="color: #64748b; font-size: 11px; text-transform: uppercase; font-weight: 600;">Endereço IP</small>
+                    <strong id="detIP" style="color: #e2e8f0; font-family: monospace; font-size: 15px;">-</strong>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <small style="color: #64748b; font-size: 11px; text-transform: uppercase; font-weight: 600;">MAC Address</small>
+                    <strong id="detMAC" style="color: #e2e8f0; font-family: monospace; font-size: 15px;">-</strong>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <small style="color: #64748b; font-size: 11px; text-transform: uppercase; font-weight: 600;">Sistema Operacional</small>
+                    <strong id="detOS" style="color: #10b981; font-size: 13px;">Aguardando...</strong>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <small style="color: #64748b; font-size: 11px; text-transform: uppercase; font-weight: 600;">Memória RAM</small>
+                    <strong id="detRAM" style="color: #e2e8f0; font-size: 14px;">Aguardando...</strong>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <small style="color: #64748b; font-size: 11px; text-transform: uppercase; font-weight: 600;">Disco (Uso)</small>
+                    <strong id="detDisco" style="color: #e2e8f0; font-size: 14px;">Aguardando...</strong>
+                </div>
+            </div>
+
+            <!-- Botões de Ações Dinâmicas -->
+            <div style="margin-top: 25px;">
+                <h4 style="color: #94a3b8; font-size: 12px; margin-bottom: 12px; text-align: left; padding-left: 2px; text-transform: uppercase;">Ferramentas de Acesso</h4>
+                <div id="detAcoes" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-start;">
+                    <!-- Botões injetados via JS -->
+                </div>
+            </div>
+
+            <!-- Botão Fechar -->
+            <button class="btn-danger" onclick="document.getElementById('modalDetalhesDispositivo').style.display='none'" style="width: 100%; margin-top: 25px; padding: 12px; background: transparent; border: 1px solid #475569; color: #94a3b8; transition: 0.2s;" onmouseover="this.style.background='#334155'; this.style.color='white'" onmouseout="this.style.background='transparent'; this.style.color='#94a3b8'">Fechar Painel</button>
+        </div>
+    </div>
+
+    <!-- MODAL LOADING -->
+    <div id="modalLoading" class="modal-overlay" style="display: none; z-index: 10000;">
+        <div class="modal-box">
+            <div class="spinner"></div>
+            <h3 id="modalTitulo">Aguarde...</h3>
+        </div>
+    </div>
+
+    <!-- MODAL INPUT PDV -->
+    <div id="modalInputPDV" class="modal-overlay" style="display: none;">
+        <div class="modal-box" style="width: 280px;">
+            <h3>Ação no PDV</h3>
+            <p style="color: #94a3b8; font-size: 12px; margin-bottom: 10px;">Informe o número do caixa:</p>
+            <input type="number" id="inputPdvModal" placeholder="Ex: 32" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: white; text-align: center; font-size: 16px;">
+            <div style="display: flex; gap: 10px; margin-top: 15px; width: 100%;">
+                <button class="btn-primary" onclick="confirmarAcaoPDV()" style="flex: 1;">Avançar</button>
+                <button class="btn-danger" onclick="fecharModais()" style="flex: 1; background: #334155;">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL INPUT NSU -->
+    <div id="modalInputNSU" class="modal-overlay" style="display: none;">
+        <div class="modal-box" style="width: 300px;">
+            <h3>Segunda Via Transação</h3>
+            <p style="color: #94a3b8; font-size: 12px; margin-bottom: 10px;">Preencha os dados da nota:</p>
+            <div style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
+                <input type="text" id="nsuData" placeholder="Data (Ex: 17082026)" style="padding: 10px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: white;">
+                <input type="number" id="nsuPdv" placeholder="Nº PDV (Ex: 32)" style="padding: 10px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: white;">
+                <input type="text" id="nsuNumero" placeholder="Nº NSU" style="padding: 10px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: white;">
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 15px; width: 100%;">
+                <button class="btn-primary" onclick="processarExtrairNSU()" style="flex: 1;">Buscar</button>
+                <button class="btn-danger" onclick="fecharModais()" style="flex: 1; background: #334155;">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL RESULTADO NSU -->
+    <div id="modalResultadoNSU" class="modal-overlay" style="display: none;">
+        <div class="modal-box" style="width: 400px; max-width: 90%;">
+            <h3>Transação Encontrada</h3>
+            <textarea id="previewNSU" readonly style="width: 100%; height: 180px; margin: 10px 0; background: #0f172a; color: #10b981; font-family: monospace; font-size: 11px; padding: 10px; border: 1px solid #334155; border-radius: 6px; resize: none;"></textarea>
+            <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn-primary" onclick="salvarArquivoNSU()" style="flex: 1; background-color: #10b981;">Salvar Arquivo</button>
+                    <button class="btn-danger" onclick="fecharModais()" style="flex: 1; background-color: #334155;">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL AJUSTE HORA -->
+    <div id="modalAjusteHora" class="modal-overlay" style="display: none;">
+        <div class="modal-box" style="width: 340px;">
+            <h3>Sincronização de Relógio</h3>
+            <div style="background: #0f172a; padding: 15px; border-radius: 6px; border: 1px solid #334155; width: 100%; margin: 15px 0; text-align: left;">
+                <p style="color: #94a3b8; font-size: 13px; margin-bottom: 5px;">Hora atual no PDV:</p>
+                <p id="horaPDVDisplay" style="color: #f8fafc; font-size: 16px; font-weight: bold; margin-bottom: 15px;">--:--:--</p>
+                <p style="color: #94a3b8; font-size: 13px; margin-bottom: 5px;">Hora da sua Máquina:</p>
+                <p id="horaPCDisplay" style="color: #38bdf8; font-size: 16px; font-weight: bold;">--:--:--</p>
+            </div>
+            <p style="color: #cbd5e1; font-size: 12px; margin-bottom: 15px;">Deseja forçar a atualização para a hora da sua máquina?</p>
+            <div style="display: flex; gap: 10px; width: 100%;">
+                <button class="btn-primary" onclick="executarSincronizacaoHora()" style="flex: 1; background-color: #10b981;">Sim, Atualizar</button>
+                <button class="btn-danger" onclick="fecharModais()" style="flex: 1; background-color: #334155;">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+    <script src="js/app.js"></script>
+</body>
+
+</html>
