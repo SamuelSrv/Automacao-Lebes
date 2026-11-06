@@ -1,0 +1,16 @@
+# Dependências do Node
+node_modules/
+
+# Pastas de Build e Instaladores (Electron Builder)
+dist/
+dist2/
+build/
+release/
+out/
+
+# Logs e arquivos temporários
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+LOG/
+.env

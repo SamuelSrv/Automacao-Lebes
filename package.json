@@ -1,6 +1,6 @@
 {
   "name": "lebes-automation",
-  "version": "1.0.0",
+  "version": "1.6.1",
   "description": "Centro de Comando - Lebes Automation",
   "main": "main.js",
   "scripts": {
@@ -12,23 +12,36 @@
   },
   "devDependencies": {
     "electron": "^30.0.0",
-    "electron-builder": "^24.13.3"
+    "electron-builder": "^24.13.3",
+    "electron-packager": "^17.1.2"
   },
   "build": {
     "appId": "com.lebes.automation",
     "productName": "Lebes Automation",
     "directories": {
-      "output": "dist"
+      "output": "dist2"
     },
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "sign": null,
+      "cscLink": null,
+      "cscKeyPassword": null,
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico"
     },
     "files": [
       "main.js",
       "preload.js",
       "index.html",
-      "js/app.js",
       "style.css",
+      "js/**/*",
+      "assets/**/*",
       "package.json"
     ],
     "asarUnpack": [

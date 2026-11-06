@@ -7,9 +7,13 @@ contextBridge.exposeInMainWorld('sistema', {
     salvarArquivoNativo: (dados) => ipcRenderer.invoke('salvar-arquivo-nativo', dados),
     verificarAtualizacao: () => ipcRenderer.invoke('verificar-atualizacao'),
     autenticarServidor: (ip) => ipcRenderer.invoke('autenticar-servidor', ip),
-    
+    configurarPdv: (dados) => ipcRenderer.invoke('configurar-pdv', dados),
     toggleDevTools: () => ipcRenderer.invoke('toggle-devtools'),
-    
-    // NOVA PONTE: Ouve o terminal do servidor em tempo real
-    onConsoleUpdate: (callback) => ipcRenderer.on('console-update', (event, data) => callback(data))
+    onConsoleUpdate: (callback) => ipcRenderer.on('console-update', (event, data) => callback(data)),
+    onStatusSenha: (callback) => ipcRenderer.on('status-senha-pdv', (event, data) => callback(data)),
+    obterUltimoBase: (ip) => ipcRenderer.invoke('obter-ultimo-base', ip),
+    obterRamAoVivo: (ip) => ipcRenderer.invoke('obter-ram-ao-vivo', ip),
+    obterVersaoLocal: () => ipcRenderer.invoke('obter-versao-local'),
+    obterInfoVersao: () => ipcRenderer.invoke('obter-info-versao'),
+    desbloquearPutty: (dados) => ipcRenderer.invoke('desbloquear-putty', dados)
 });
